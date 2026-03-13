@@ -1,8 +1,8 @@
 // lib/ai/gemini.ts
 
-// 1. 構文解析（APIを叩く関数）
+// 1. 構造解析
 export async function extractStructure(text: string) {
-  const STAGE1_SYSTEM = "あなたは予備校の最高権威です。英文をSVOCなどの要素に分解し、日本語訳を付けてJSON形式で返してください。";
+  const STAGE1_SYSTEM = "あなたは予備校の最高権威です。英文をSVOC要素に分解しJSONで返してください。";
 
   const response = await fetch('/api/analyze', {
     method: 'POST',
@@ -17,20 +17,32 @@ export async function extractStructure(text: string) {
   return await response.json();
 }
 
-// 2. 添削（APIを叩く関数）
-// ここを確実に 'export' することで、page.tsx の赤字が消えます
-export async function gradeTranslation(text: string, translation: string) {
-  const GRADING_SYSTEM = "あなたは予備校の最高権威です。提示された英文と和訳を比較し、論理的な添削を行ってください。";
+// 2. 演習問題生成（もし使っていれば）
+export async function generatePractice(originalResult: any) {
+  const response = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: `Original Structure: ${JSON.stringify(originalResult.elements)}`,
+      systemPrompt: "あなたは予備校の最高権威です。類題を作成してください。"
+    }),
+  });
+  return await response.json();
+}
+
+// 3. 精密採点（ここを修正しました）
+export async function gradeTranslation(userText: string, modelText: string, sentence: string) {
+  const GRADING_SYSTEM = `あなたは予備校の英語最高権威です。ユーザーの和訳を採点してください。`;
 
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      text: `Original: ${text}\nTranslation: ${translation}`,
+      text: `Sentence: ${sentence}\nUser: ${userText}`,
       systemPrompt: GRADING_SYSTEM
     }),
   });
 
-  if (!response.ok) throw new Error('添削に失敗しました');
+  if (!response.ok) throw new Error('採点に失敗しました');
   return await response.json();
 }
