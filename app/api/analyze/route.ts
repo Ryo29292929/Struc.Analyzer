@@ -8,7 +8,9 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const { text, systemPrompt } = await req.json();
+    const body = await req.json();
+const text = body.text || body.sentence;
+const systemPrompt = body.systemPrompt;
 
     if (!text) {
       return NextResponse.json({ error: 'テキストがありません' }, { status: 400 });
