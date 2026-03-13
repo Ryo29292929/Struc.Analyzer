@@ -1,27 +1,35 @@
+# フォルダ作成
+mkdir -p app/api/analyze
+
+# ファイル作成
+cat > app/api/analyze/route.ts << 'EOF'
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// サーバーサイドのみで実行されるため安全です
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, 
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, systemPrompt } = await req.json();
+    const body = await req.json();
+    const { sentence } = body;
+
+    if (!sentence || typeof sentence !== 'string') {
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    }
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: text }
-      ],
-      response_format: { type: "json_object" },
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: sentence }],
+      max_tokens: 1000,
     });
 
-    return NextResponse.json(JSON.parse(response.choices[0].message.content || '{}'));
-  } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({
+      result: response.choices[0].message.content,
+    });
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
