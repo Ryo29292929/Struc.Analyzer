@@ -1,8 +1,3 @@
-# フォルダ作成
-mkdir -p app/api/analyze
-
-# ファイル作成
-cat > app/api/analyze/route.ts << 'EOF'
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
