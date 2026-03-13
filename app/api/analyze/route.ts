@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// サーバーサイドのみで実行されるため安全です
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // Vercelの環境変数から読み込み
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, 
 });
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(JSON.parse(response.choices[0].message.content || '{}'));
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error(error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

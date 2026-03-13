@@ -1,7 +1,8 @@
 // 1. 構文解析（APIを叩く関数）
 export async function extractStructure(text: string) {
-  const STAGE1_SYSTEM = `あなたは予備校の最高権威です。以下の【json】フォーマットのみで回答してください。`; // プロンプトの詳細は省略せず以前のものを使ってください
+  const STAGE1_SYSTEM = `あなたは予備校の最高権威です。...(中略)...`; 
 
+  // 直接OpenAIを呼ぶのではなく、自作のAPIエンドポイントを叩く
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -11,7 +12,11 @@ export async function extractStructure(text: string) {
     }),
   });
 
-  if (!response.ok) throw new Error('解析に失敗しました');
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || '解析に失敗しました');
+  }
+
   return await response.json();
 }
 
